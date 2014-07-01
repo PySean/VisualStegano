@@ -1,4 +1,4 @@
-%stego_project_intro, by Sean Soderman
+%%stego_project_intro, by Sean Soderman, Matthew Seaworth%
 
 \documentclass{article}
 \usepackage{times}
@@ -12,7 +12,13 @@
 \maketitle
 
 \section{Project Description}
-We are using techniques... yes... (TBD - To Be Done)
+We are using a modified Arnold's Transform(AT) to permute the spatial coordinants of the bitplanes in the message images
+before embedding in order to increase entropy of the least significant bits in the coresponding steganography images. The transform
+matrix is changed to include the values i and i plus one as the entries in the first row. Then several of these matrixes are applied
+to the image for a number of times in a particular order known only by the sender and reciever. This requires a transfer of private
+keys beforehand to user the correct AT matrices and the correct number of rotations. The period of the AT of an arbitrarily sized
+matrix can be given by the least common multiple of the period of the independent factors of the side length (N). A set of numbers
+are independent factors of another number if their multiple equals that number and they share a greatest commmon divisor of one.
 
 
 \section{General Approach}
