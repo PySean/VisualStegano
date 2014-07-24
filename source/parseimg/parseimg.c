@@ -23,17 +23,6 @@
 //Token error printing function definition.
 void err_sys(char * msg);
 
-int main(int argc, char * argv[])
-{
-   //Name of the input file and output file. Will use getopt eventually...
-   char * fname = argv[1];   
-   char * outname = argv[2];
-   bmp_file bro;
-   load_img(&bro, fname);
-   write_img(bro, outname);
-   return 0;
-}
-
 /*
  * Loads all image data into the bmp struct.
  *
@@ -61,7 +50,6 @@ void load_img(bmp_file * bmp, char * file_name)
    int orig_pos = ftell(file);
    fread(&version, sizeof(version), 1, file);
    fseek(file, orig_pos, SEEK_SET);
-   printf("Version is: %u\n", version); 
    //Read "version" number of bytes into bmp data header.
    fread(&bmp->dheader, version, 1, file); 
 

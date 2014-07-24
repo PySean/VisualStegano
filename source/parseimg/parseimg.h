@@ -34,9 +34,9 @@ typedef struct bitmap_file_header
    unsigned bmp_offset; //Denotes the beginning of image data
 }bmp_file_hdr;
 
-/* Structure defining the full blown, v4 bitmap header.
- * Since every other BMP header is a subset of this one, it will be partially
- * filled most of the time.
+/* Structure defining the full blown, v5 bitmap header.
+ * Since every other BMP header is a proper subset of this one, it will be
+ * partially filled most of the time.
  */
 typedef struct bitmap_data_header
 {
