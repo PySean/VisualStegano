@@ -116,9 +116,10 @@ typedef struct holder
    bmp_file_hdr fheader;   //Generic bmp file header common to all bitmaps.
    bmp_data_hdr dheader;   //Header for bitmap data information.
    sp_element * s_palette; //Color palette for bmp v2.
-   p_element * palette;    //Color palette for bmp v3/v4
+   p_element * palette;    //Color palette for bmp v3/v4/v5
    char ** img_data8bit;   //If this bitmap is 8 bits/pixel, the img data is here.
    pixel24 ** img_data24bit; //Otherwise if its 24 bits, it is here.
+   char * profile_bytes;    //Contains the "profile". Not sure why this was even added.
 }bmp_file;
 
 
