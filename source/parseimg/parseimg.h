@@ -1,6 +1,8 @@
 /*
- *"parsefile.h", by Sean Soderman
+ *"parseimg.h", by Sean Soderman
  * Header file defining techniques to read in and evaluate BMP data.
+ * TODO: Create memory freeing routine, "unsupported" msg routines,
+ * error traps, and, least importantly, support for 24 bit color bmps.
  */
 
 /* These #defines enumerate the possible types of BMP files we may come across
@@ -96,7 +98,6 @@ typedef struct big_palette_element
 /* Use this for reading in the palette table from BMP files with <=
  * 8 bits per pixel. Can also double as the struct for reading in
  * raw pixel data for 24 bit/pixel bitmaps.
- *
  */
 typedef struct small_palette_element
 {
@@ -117,7 +118,7 @@ typedef struct holder
    bmp_data_hdr dheader;   //Header for bitmap data information.
    sp_element * s_palette; //Color palette for bmp v2.
    p_element * palette;    //Color palette for bmp v3/v4/v5
-   char ** img_data8bit;   //If this bitmap is 8 bits/pixel, the img data is here.
+   unsigned char ** img_data8bit;   //If this bitmap is 8 bits/pixel, the img data is here.
    pixel24 ** img_data24bit; //Otherwise if its 24 bits, it is here.
    char * profile_bytes;    //Contains the "profile". Not sure why this was even added.
 }bmp_file;
