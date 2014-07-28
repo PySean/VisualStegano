@@ -5,19 +5,35 @@
 #include "normal/normal.h"
 #include "normal/normsinv.h"
 #include "spread_spectrum.h"
-//*
+
+#define COVSIZ 40
+
+int compare_ints(int orgin, int relativeto);
+/*
 int main()
 {
-   char cover[8] = "abcdefg";
-   int seed = 3;
-   char message = 'j';
-   embed_message((unsigned char *)cover, (unsigned char *)&message, 8, &seed);
-   for (seed = 0; seed < 8; seed++)
-        printf("%d : %x\n", seed , cover[seed]);
-   printf("%s",cover);
+   unsigned char cover[96]  = "abcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq ponabcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq pon";
+   unsigned char ocover[96] = "abcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq ponabcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq pon";
+   unsigned char * decrypted;
+   int mlen;
+   int seed_init = 3;
+   int seed, index;
+   seed = seed_init;
+   unsigned char message[12] = "hello world";
+   mlen = CHAR_BIT * 11;
+   embed_message((unsigned char *)cover, (unsigned char *)&message, mlen, &seed);
+   for (index = 0; index < 8; index++)
+        printf("%d : %x\n", index , cover[index]);
+   printf("%s\n",cover);
+   printf("P_LOW %Lf\n", normsinv(P_HIGH));
+   printf("P_HIGH %Lf\n", normsinv(P_LOW));
+   seed = seed_init;
+   decrypted = decode_message(ocover, cover, mlen, &seed);
+   printf("message: %s\n decrypted message: %s\n",message, decrypted);
+   free(decrypted);
    return 0;
 }
-//*/
+*/
 int embed_message(unsigned char * cover, unsigned char *message, int numb, int *seed)
 {
    int bits_embed;
@@ -40,19 +56,19 @@ int embed_message(unsigned char * cover, unsigned char *message, int numb, int *
 
       mess_char &= mask;
       noise_stream = 0.0;
-      /*Don't want extremely large or small values from the inverse cdf function
-       *but also want to preserve randomness, so scale values to new domain.
-       */
-      noise_stream = P_LOW + r8_uniform_01 (seed) * (P_HIGH - P_LOW);
-      printf("noise_stream uniform %Lf \n", noise_stream);
+
+      noise_stream = r8_uniform_01(seed);
       if ( mess_char != REG_STREAM)
       {
          noise_stream = noise_stream < MIDP ? noise_stream + MIDP: noise_stream - MIDP;
       }
-
+      /*Don't want extremely large or small values from the inverse cdf function
+       *but also want to preserve randomness, so scale values to new domain.
+       */
+      noise_stream = P_LOW + noise_stream * (P_HIGH - P_LOW);
       noise_stream = normsinv(noise_stream) * SCALE;
       printf("noise_stream final %Lf \n", noise_stream);
-      cove_char = cove_char + (int)noise_stream < 0.0 ? 0 :cove_char + (int) noise_stream;
+      cove_char = cove_char + (int)noise_stream < 0 ? 0 :cove_char + (int) noise_stream;
       cover[bits_embed] = cove_char > UCHAR_MAX ? UCHAR_MAX: cove_char;
    }
 
@@ -71,7 +87,8 @@ unsigned char * decode_message(unsigned char *cover, unsigned char * stegan, int
     *
     * This function compares the noise stream
     * */
-   message = (unsigned char *) malloc(numb/CHAR_BIT + 1);
+   message = (unsigned char *) calloc(numb/CHAR_BIT+ 1, 1);
+   message[numb/CHAR_BIT] = '\0';
    for ( bits_decode = 0; bits_decode < numb; bits_decode++)
    {
 
@@ -82,19 +99,49 @@ unsigned char * decode_message(unsigned char *cover, unsigned char * stegan, int
 
       noise_stream = 0.0;
       alt_noise_stream = 0.0;
+
+      noise_stream = r8_uniform_01(seed);
+      alt_noise_stream = noise_stream < MIDP ? noise_stream + MIDP: noise_stream - MIDP;
       /*Don't want extremely large or small values from the inverse cdf function
        *but also want to preserve randomness, so scale values to new domain.
        */
-      noise_stream = P_LOW + r8_uniform_01 (seed) * (P_HIGH - P_LOW);
-      alt_noise_stream = noise_stream < MIDP ? noise_stream + MIDP: noise_stream - MIDP;
+      noise_stream = P_LOW + noise_stream * (P_HIGH - P_LOW);
+      alt_noise_stream = P_LOW + alt_noise_stream * (P_HIGH - P_LOW);
       noise_stream = normsinv(noise_stream) * SCALE;
       alt_noise_stream = normsinv(alt_noise_stream) * SCALE;
 
       //The stream is selected by the difference stream with the smallest absolute value
-      mess_char = abs(img_diff - noise_stream) >= abs(img_diff - alt_noise_stream) ? ALT_STREAM : REG_STREAM;
-      message[bits_decode] |= ( mess_char << bits_decode % CHAR_BIT);
+      /* normsinv(P_HIGH) = -1.972961 and normsinv(P_LOW) = -1.972961
+      *
+      *  At boundary values check for which of the values is positive and which is negative then
+      *  assign the stream that makes more sense. Because of how the function is decided there will
+      *  one positive or zero value and one negative value.
+      */
+      if(cove_char == 0)
+      {
+         mess_char = compare_ints(noise_stream, alt_noise_stream) < 0 ? REG_STREAM : ALT_STREAM;
+      }
+      else if(cove_char == UCHAR_MAX)
+      {
+         mess_char = compare_ints(noise_stream,alt_noise_stream) > 0 ? REG_STREAM : ALT_STREAM;
+      }
+      else{
+         mess_char = abs(img_diff - noise_stream) >= abs(img_diff - alt_noise_stream) ? ALT_STREAM : REG_STREAM;
+      }
+      printf("%d\n",mess_char);
+      message[bits_decode/CHAR_BIT] += (unsigned char)( mess_char << bits_decode % CHAR_BIT);
    }
-
    return message;
+}
+
+/*Simple Comparison function
+ return 1 if orgin is larger than relative to
+ return 0 if orgin is equal to relative to
+ return -1 if orgin is less than relative to
+
+*/
+int compare_ints(int orgin, int relativeto)
+{
+   return (orgin > relativeto) - (orgin > relativeto);
 }
 
