@@ -1,14 +1,22 @@
-VPATH = parseimg:filter
+VPATH = parseimg:filter:normal
+CC=gcc
+CFLAGS=-Wall -c
 
-objects = parseimg.o main.o filter.o
+objects = parseimg.o main.o filter.o normal.o normsinv.o spread_spectrum.o
 
 hideit: $(objects)
-	gcc -o hideit $(objects)
+	$(CC) -o hideit $(objects) -lm
 main.o: main.c 
-	gcc -c main.c
+	$(CC) $(CFLAGS) main.c
 parseimg.o: parseimg.c parseimg.h
-	gcc -c ./parseimg/parseimg.c
+	$(CC) $(CFLAGS) ./parseimg/parseimg.c
 filter.o: filter.c filter.h
-	gcc -c ./filter/filter.c
+	$(CC) $(CFLAGS) ./filter/filter.c
+normal.o: normal.c normal.h
+	$(CC) $(CFLAGS) ./normal/normal.c
+normsinv.o: normsinv.c normsinv.h
+	$(CC) $(CFLAGS) ./normal/normsinv.c
+spread_spectrum.o: spread_spectrum.c spread_spectrum.h
+	$(CC) $(CFLAGS) spread_spectrum.c
 clean:
 	rm hideit $(objects)
