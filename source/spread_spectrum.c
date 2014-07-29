@@ -34,7 +34,7 @@ int main()
    return 0;
 }
 */
-int embed_message(unsigned char * cover, unsigned char *message, int numb, int *seed)
+int embed_message(unsigned char ** cover, unsigned char *message, int width, int height, int numb, int *seed)
 {
    int bits_embed;
    long double noise_stream;
@@ -51,7 +51,7 @@ int embed_message(unsigned char * cover, unsigned char *message, int numb, int *
    {
 
       mess_char = message[bits_embed/CHAR_BIT];
-      cove_char = cover[bits_embed];
+      cove_char = cover[bits_embed/width][bits_embed % width];
       mask = (1 << (bits_embed % CHAR_BIT));
 
       mess_char &= mask;
@@ -69,13 +69,13 @@ int embed_message(unsigned char * cover, unsigned char *message, int numb, int *
       noise_stream = normsinv(noise_stream) * SCALE;
       printf("noise_stream final %Lf \n", noise_stream);
       cove_char = cove_char + (int)noise_stream < 0 ? 0 :cove_char + (int) noise_stream;
-      cover[bits_embed] = cove_char > UCHAR_MAX ? UCHAR_MAX: cove_char;
+      cover[bits_embed/width][bits_embed % width] = cove_char > UCHAR_MAX ? UCHAR_MAX: cove_char;
    }
 
    return bits_embed;
 }
 
-unsigned char * decode_message(unsigned char *cover, unsigned char * stegan, int numb, int *seed)
+unsigned char * decode_message(unsigned char **cover, unsigned char **stegan, int width, int height, int numb, int *seed)
 {
    int bits_decode;
    long double noise_stream, alt_noise_stream;
@@ -93,8 +93,8 @@ unsigned char * decode_message(unsigned char *cover, unsigned char * stegan, int
    {
 
       mess_char = 0;
-      cove_char = cover[bits_decode];
-      steg_char = stegan[bits_decode];
+      cove_char = cover[bits_decode/width][bits_decode % width];
+      steg_char = stegan[bits_decode/width][bits_decode % width];
       img_diff = steg_char - cove_char;
 
       noise_stream = 0.0;
@@ -134,12 +134,6 @@ unsigned char * decode_message(unsigned char *cover, unsigned char * stegan, int
    return message;
 }
 
-/*Simple Comparison function
- return 1 if orgin is larger than relative to
- return 0 if orgin is equal to relative to
- return -1 if orgin is less than relative to
-
-*/
 int compare_ints(int orgin, int relativeto)
 {
    return (orgin > relativeto) - (orgin > relativeto);

@@ -27,7 +27,7 @@
  *
  * Returns number of bits embedded in cover
  */
-int embed_message(unsigned char * cover, unsigned char *message, int numb, int *seed);
+int embed_message(unsigned char ** cover, unsigned char ** message, int width, int height, int numb, int *seed);
 
 /* Takes the stegan message and the cover, generates the guassian noise streams
  * and compares the produced values with the difference between the stegan image
@@ -39,6 +39,15 @@ int embed_message(unsigned char * cover, unsigned char *message, int numb, int *
  * Returns an array of message bit in unsigned char form.
  * Be sure to free the array after use to prevent memory leaks
  */
-unsigned char * decode_message(unsigned char * cover, unsigned char * stegan, int numb, int *seed);
+unsigned char * decode_message(unsigned char ** cover, unsigned char ** stegan, int width, int height, int numb, int *seed);
+
+/*Simple Comparison function
+ return 1 if orgin is larger than relative to
+ return 0 if orgin is equal to relative to
+ return -1 if orgin is less than relative to
+
+*/
+int compare_ints(int orgin, int relativeto);
+
 
 #endif /*end SPREAD_SPECTRUM_H*/
