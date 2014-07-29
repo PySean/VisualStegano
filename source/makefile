@@ -1,4 +1,4 @@
-VPATH = parseimg:filter:normal
+VPATH = parseimg:filter:normal:spreadspec
 CC=gcc
 CFLAGS=-Wall -c
 
@@ -17,6 +17,6 @@ normal.o: normal.c normal.h
 normsinv.o: normsinv.c normsinv.h
 	$(CC) $(CFLAGS) ./normal/normsinv.c
 spread_spectrum.o: spread_spectrum.c spread_spectrum.h
-	$(CC) $(CFLAGS) spread_spectrum.c
+	$(CC) $(CFLAGS) ./spreadspec/spread_spectrum.c
 clean:
 	rm hideit $(objects)
