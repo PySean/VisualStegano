@@ -1,20 +1,11 @@
 /*
  * "filter.h", by Sean Soderman
  *
- * The definitions for all alpha-trimmed mean filtering functions
- * are declared here. Admittedly, there aren't many.
- *
+ * The definition for the alpha-trimmed mean filtering function
+ * are declared here. I decided since the trim_mean subroutine
+ * is only relevant to this portion of the program to keep it
+ * exclusively declared within filter.c.
  */
-
-
-
-/*
- * Expands a height x width array into an area x 1 array.
- * It then sorts this array and calculates its mean beginning at the element
- * indexed by trim, and ending at area - trim.
- * TODO: Figure whether it would be better to have this function here or *there*.
- */
-//unsigned calc_mean(char ** window, unsigned height, unsigned width, unsigned short trim);
 
 
 /*

@@ -3,6 +3,9 @@
 #include "../parseimg/parseimg.h"
 #include "filter.h"
 
+//Marvel et al's implementation uses a trim of 1. This is also what we will use.
+#define TRIM 1
+
 /*
  * "filter.c", by Sean Soderman
  * Implentation of the alpha mean trimmed filter, using the same parameters
@@ -13,8 +16,9 @@
  * I would like to give it a shot.
  */
 
-
-unsigned trim_mean(size_t type, unsigned char * array, unsigned trim, unsigned area);
+//Returns the alpha-trimmed mean of the array.
+unsigned trim_mean(size_t type, unsigned char * array, unsigned trim, 
+                  size_t size);
 
 
 
@@ -26,62 +30,59 @@ unsigned pixel_sum(pixel24 p);
  * bmp: The struct containing relevant bitmap information.
  * w_size: Specifies both the height and width dimensions of the window.
  * Note: This struct should have its data initialized with the load_img() function
- * in filter.h before calling this function on it.
- *
+ * in filter.h before calling this function on it. 
+ * Other note: w_size should be an odd number.
  */
 
 void alpha_filter(bmp_file bmp, size_t w_size)
 {
+   //i and j iterate through the entirety of the image, k and l are the window
+   //iterators.
    int i = 0, j = 0, k = 0, l = 0;
-   //Check if the area isn't odd.
+   
+   //Calculate & store the area of the window.
+   size_t area = w_size * w_size;
+
+   //This value is necessary for iterating over all surrounding pixels.
+   //Also good to avoid excessive division computations.
+   size_t outer_ndx = w_size / 2;
+   int height = bmp.dheader.height;
+   int width = bmp.dheader.width;
+   
+   //Check if the area isn't odd
    if (!(w_size & 1))
    {
       fprintf(stderr, "Please enter an odd dimension for the window");
       exit(1);
    }
-   //Expand window into w_size x 1 array.
-   //I am *not* sure if I have to iterate over every single pixel and assign
-   //every pixel the mean of its surrounding values. If I have to, then the
-   //missing window values will have to be symmetrically reflected onto these elements.
-   if (bmp.dheader.bits_per_pixel <= 8)
+   //Declare array to expand window into, and its indexer.
+   unsigned char exp_w[area];
+   int exp_ndx = 0;
+   //Iterate through bitmap data, maintain window iterators.
+   for (i; i < height; i++)
    {
-      //Initialize array that will hold every element from the window.
-      char exp[w_size * w_size];
-
-      //Don't go beyond the ends of the array with the window. Calculated with
-      //the center pixel in mind. NOTE: If this scheme is incorrect,
-      //I will devise a mirroring algorithm for all partially filled window
-      //cases.
-      int hlimit = bmp.dheader.height - w_size;
-      int wlimit = bmp.dheader.width - (w_size / 2);
-      
-      //Iterate through all bitmap elements. Assign means to center pixels.
-      
-      for (i; i < hlimit; i++)
+      for (j = 0; j < width; j++)
       {
-         //The offset will be incremented w_size times by the innermost loop.
-         //This is key to expanding the matrix's values into the 1d array.
-         for (j = 0; j < wlimit; j++)
+         for (k = 0; k < w_size; k++)
          {
-            short offset = 0;
-            //Assign appropriate window values to 1d array.
-            for (k = 0; k < w_size; k++)
+            for (l = 0; l < w_size; l++)
             {
-               for (l = 0; l < w_size; l++)
+               int ndx_y = i - outer_ndx + k;
+               int ndx_x = j - outer_ndx + l;
+               //Prevent indexing from out of bound areas.
+               if (ndx_y >= 0 && ndx_x >= 0 && ndx_y < height && ndx_x < width)
                {
-                  exp[l + offset] = bmp.img_data8bit[k + i][j + l];
+                  exp_w[exp_ndx++] = bmp.img_data8bit[ndx_y][ndx_x]; 
                }
-               offset += w_size;
             }
-            //Assign mean to center pixel once array is filled.
-            bmp.img_data8bit[i + 1][j + 1] = trim_mean(bmp.dheader.bits_per_pixel, 
-                                                      exp, 1, w_size * w_size);
          }
+         //Now assign the mean of the pixel values to the center pixel.
+         unsigned bpp = bmp.dheader.bits_per_pixel;
+         bmp.img_data8bit[i][j] = trim_mean(bpp, exp_w, TRIM, exp_ndx);
+         exp_ndx = 0;
       }
    }
-   return;
 }
-
 
 // Returns the sum of each pixel within p.
 unsigned pixel_sum(pixel24 p)
@@ -103,15 +104,14 @@ unsigned pixel_sum(pixel24 p)
  * of the array. In this implementation, this will just be 1.
  */
 
-unsigned trim_mean(size_t type, unsigned char * array, unsigned trim, unsigned area)
+unsigned trim_mean(size_t type, unsigned char * array, unsigned trim, size_t size)
 {
    unsigned sum = 0, mean = 0;
    int i = 0, j = 0;
-
    //A selection sort is imposed on the array.
-   for (i; i < area; i++)
+   for (i; i < size; i++)
    {
-      for (j = i; j < area; j++)
+      for (j = i; j < size; j++)
       {
          if (array[j] < array[i])
          {
@@ -124,7 +124,7 @@ unsigned trim_mean(size_t type, unsigned char * array, unsigned trim, unsigned a
 
    //Exclude "trim" amount of elements from beginning and end of array.
    i = trim;
-   for (i; i < area - trim; i++)
+   for (i; i < size - trim; i++)
    {
       //This comparison anticipates the acceptance of 24-bit bitmaps.
       if (type == 8)
