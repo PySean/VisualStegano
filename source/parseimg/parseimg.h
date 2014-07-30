@@ -1,3 +1,5 @@
+#ifndef PARSEIMG_H
+#define PARSEIMG_H
 /*
  *"parseimg.h", by Sean Soderman
  * Header file defining techniques to read in and evaluate BMP data.
@@ -129,3 +131,4 @@ void load_img(bmp_file * bmp, char * file_name);
 
 //Outputs image data to specified filename.
 void write_img(bmp_file bmp, char * file_name);
+#endif /*End of PARSEIMG_H*/
