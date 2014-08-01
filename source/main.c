@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
    char *new_file_name;
    bmp_file bmp;
    int seed;
-   int len;
+   int namelen;
    /*If our command line options get more complicated we should
     *do proper argument parsing until such a point though this
     *is needs suiting.
@@ -45,32 +45,47 @@ int main(int argc, char * argv[])
       message_buffer = (char * ) malloc(message_length);
       fread(message_buffer, message_length, 1 , message_file); //Read in entire message into buffer
       /* Error Correcting Code */
+      //message_ecc = (unsigned char *) call_to_ecc_encode(params);
+      
+      
+      
       /*This may return a different message size so we need to make sure it will return a new size as well*/
-      /* SpreadSpec Embedding */
       /*Message ecc is returned from Error Correcting code*/
       embed_message(bmp.imgdata8bit, message_ecc, bmp.dheader.width, bmp.dheader.height, message_len, &seed);
       /* Write Changes to imagename.stego.bmp */
       /**/
-      len = strlen(argv[2]);
-      new_file_name = malloc(len + 6);
+      namelen = strlen(argv[2]);
+      new_file_name = malloc(namelen + 6);
       new_file_name[0] = '\0';
       strcat(new_file_name, argv[2]);
-      if(len > 4);
-         new_file_name[len - 5] = '\0';
+      if(namelen > 4)
+         {
+         new_file_name[namelen - 5] = '\0';
+         }
       strcat(new_file_name, "stego.bmp");
       write_img(&bmp, new_file_name);
       free(new_file_name);
       free(message_buffer);
+      fclose(message_file);
       }
    else
       {
       load_img(&bmp, argv[2]);
       /*Recovery of original */
+      
+      
       /*SpreadSpec Decoding */
       embed_message(bmp.imgdata8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, bmp.dheader.width * bmp.dheader.height, &seed);
-      /* Error Correcting Code*/
+      /*Clipping Function For messages that are shorter than image length we may want to truncate them*/
+      
+      
+      /*Error Correcting Code*/
+      // message_buffer = (unsigned char *) call_to_ecc_decode(params);
+      
       message_file = fopen(argv[3], "+w");
       /*Write message to file*/
+      fwrite(message_buffer, 1, message_length, message_file);
+      fclose(message_file);
       }
    return 0;
 }
@@ -79,6 +94,6 @@ void usage(char *programname)
 {
    printf("%s encodes and decodes spread spectrum images\n
            to call this program use the following format\n
-           %s [-E coverimage message]|[-D stegoimage outputfile] seed\n", programname);
+           %s [-E coverimage message]|[-D stegoimage outputfile] seed\n", programname , programname);
 }
 
