@@ -21,6 +21,7 @@ int main(int argc, char * argv[])
    unsigned char **recovered_cover;
    char *new_file_name;
    bmp_file bmp;
+   bmp_file tempbmp; /*Only used for alpha_trim, will modify function later*/
    int seed;
    int namelen;
    /*If our command line options get more complicated we should
@@ -51,7 +52,7 @@ int main(int argc, char * argv[])
       
       /*This may return a different message size so we need to make sure it will return a new size as well*/
       /*Message ecc is returned from Error Correcting code*/
-      embed_message(bmp.imgdata8bit, message_ecc, bmp.dheader.width, bmp.dheader.height, message_len, &seed);
+      embed_message(bmp.img_data8bit, message_ecc, bmp.dheader.width, bmp.dheader.height, message_len, &seed);
       /* Write Changes to imagename.stego.bmp */
       /**/
       namelen = strlen(argv[2]);
@@ -71,11 +72,12 @@ int main(int argc, char * argv[])
    else
       {
       load_img(&bmp, argv[2]);
+      load_img(&tempbmp, argv[2]);
       /*Recovery of original */
-      
-      
-      /*SpreadSpec Decoding */
-      embed_message(bmp.imgdata8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, bmp.dheader.width * bmp.dheader.height, &seed);
+      alpha_filter(tempbmp, 3);
+      recovered_cover = tempbmp.dheader.img_data8bit;
+      /*SpreadSpec Decoding (shouldn't this be decode_message?)*/
+      embed_message(bmp.img_data8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, bmp.dheader.width * bmp.dheader.height, &seed);
       /*Clipping Function For messages that are shorter than image length we may want to truncate them*/
       
       
