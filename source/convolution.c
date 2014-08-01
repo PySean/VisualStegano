@@ -6,6 +6,13 @@
 #include <string.h>
 #pragma pack(1)
 
+
+
+
+
+
+
+
 /*
    Struct representing flip flops (single-bit save registers). 
    left would take the previous input, while right would take the input that was saved in left. 
@@ -52,11 +59,8 @@ void  encode(unsigned char byte, unsigned char data[]);
    A miniature function that makes the bits in the struct "bits" stored in a byte
    to be returned and then saved into the data array. 
 */
-
 unsigned char byteReturn();
 
-//The count 
-unsigned length = 0;
 unsigned count = 0;
 /*
   Our convolutional encoder This will take 1 bit and return 2 bits. Each "input" bit
@@ -70,19 +74,24 @@ int main(int argc, char * argv[]){
    
    unsigned char buf;
    int i = 0;
+   unsigned length = 0;
    length = strlen(argv[1]);
+   printf("length is %d\n", length);
 
+   //printf("LENGTH is %d\n", length*2 + 1);
    //data will have an extra bit paired with every bit in buf, as well as an additional byte (+1) to store four "flush" bits. The four lowest bits in
    //the additional byte are simply zero.
    unsigned char data[length*2 + 1];
-  
-   printf("struct size: %d\n", sizeof(bit_pair));
+
+   printf("Data LENGTH: %d\n", sizeof(data));
 
 //This takes in 1 byte at a time from the data. 
    for (i = 0; i < length; i++){
       buf = argv[1][i];
-      encode(buf, data); 
-      printf("data1: %x  and data 2: %x\n",data[i], data[i+1]);
+      encode(buf, data);
+
+
+ //     printf("data1: %x  and data 2: %x\n",data[i], data[i+1]);
    
    }
 
@@ -96,11 +105,13 @@ int main(int argc, char * argv[]){
 */
    output(0,0);
    output(0,1);
-   data[++i] = byteReturn();
-   printf("Flush bits are: %x\nWhat we end up with: ", data[i]);
+ //  bits.fourth = 0;
+ //  bits.third = 0;
+   data[count] = byteReturn();
+   printf("Flush bits are: %x\nWhat we end up with: ", data[count]);
 
-   for(i = 0; i < length*2 + 1; i++){
-      printf("%x ", data[i]);
+   for(i = 0; i < sizeof(data); i++){
+      printf("Position %d is %x ",i  ,data[i]);
 
 
    }
@@ -116,7 +127,6 @@ int main(int argc, char * argv[]){
 */
 void encode (unsigned char byte, unsigned char data[]){
 
-   static short count = 0;
    unsigned char MASK = 0x80;
    unsigned char num = 0;
    int i = 0;
@@ -131,7 +141,10 @@ void encode (unsigned char byte, unsigned char data[]){
 
       //Data[0] and Data[1] contain the first byte of redundancy, and so on and so forth.
       data[count] = byteReturn();
+      printf("data of position %d is %x: \n", count, data[count]);
       count++;
+
+
 
 
    for (i = 0; i < 4; i ++){
@@ -140,8 +153,11 @@ void encode (unsigned char byte, unsigned char data[]){
       output(num, i);
    }
       data[count] = byteReturn();
+      printf("data of position %d is %x: \n", count, data[count]);
       count++;
-       
+      printf("count is %d\n", count);     
+
+     
 
 }
 /*
@@ -164,11 +180,12 @@ void output (unsigned char  num, int i){
    }
    //Update the registers. Input is shifted into left flip-flop, making its stored bit move to the right flip-flop.
    //The right flip-flop's stored bit ends up being deleted.
+   printf("This is the current bit: %x\n", num);
+   printf("Flip_Flop %x %x\n", flip.left, flip.right);
+ 
 
    flip.right = flip.left;
    flip.left = num;
-   printf("This is the current bit: %x\n", num);
-   printf("Flip_Flop %x %x\n", flip.left, flip.right);
  
    switch (i){
       case 0:
@@ -184,7 +201,6 @@ void output (unsigned char  num, int i){
          bits.first = redundancy;
          break;
    }
-   printf("This is what we wish to have: %x %x %x %x\n", bits.fourth, bits.third, bits.second, bits.first);
 }
 
 /*
@@ -207,6 +223,9 @@ unsigned char byteReturn(){
     byte2 = bits.second;
     byte2 = byte2 << 2;
     byte = bits.first;
+
+    printf("This is what we wish to have: %x %x %x %x\n", bits.fourth, bits.third, bits.second, bits.first);
+
 
 //Reset the global struct variable "bits".
     bits.fourth = 0;
