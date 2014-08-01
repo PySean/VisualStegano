@@ -123,6 +123,7 @@ typedef struct holder
    unsigned char ** img_data8bit;   //If this bitmap is 8 bits/pixel, the img data is here.
    pixel24 ** img_data24bit; //Otherwise if its 24 bits, it is here.
    char * profile_bytes;    //Contains the "profile". Not sure why this was even added.
+   unsigned scan_lines; //Number of scan lines in the file.
 }bmp_file;
 
 

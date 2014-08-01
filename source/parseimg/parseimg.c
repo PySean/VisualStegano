@@ -17,8 +17,8 @@
  * type of bitmap. So, simply writing with sizeof(bmp_file) won't work.
  */
 
-//NOTE: Main is here only for testing. Will be integrated into rest of codebase
-//later.
+/*NOTE: Either load_img or write_img is causing corruption in the upper
+portion of the bmp images. Figure out why.*/
 
 //Token error printing function definition.
 void err_sys(char * msg);
@@ -58,6 +58,10 @@ void load_img(bmp_file * bmp, char * file_name)
 
    unsigned p_entries = 1 << bmp->dheader.bits_per_pixel;
 
+   //Some bitmaps have width-wise boundary padding. This accounts for it.
+   int area = bmp->dheader.width * bmp->dheader.height;
+   bmp->scan_lines = ( (bmp->dheader.size_of_bmp - area) / bmp->dheader.height );
+   bmp->dheader.width += bmp->scan_lines;
    if (p_entries <= 256)
    {
 
@@ -90,7 +94,6 @@ void load_img(bmp_file * bmp, char * file_name)
       int height = bmp->dheader.height;
       bmp->img_data8bit = malloc(height * sizeof(*bmp->img_data8bit));
 
-      //The problem is I'm not hitting the end of the file for some reason.
       for (i; i < height; i++)
       {
          bmp->img_data8bit[i] = malloc(width); //Multiplying by 1 byte isn't necessary 
@@ -138,7 +141,9 @@ void write_img(bmp_file bmp, char * file_name)
    fwrite(&bmp.fheader, sizeof(bmp.fheader), 1, file);
    
    //Write out data header, palette if the size is right. 
+   bmp.dheader.width -= bmp.scan_lines;
    fwrite(&bmp.dheader, size, 1, file);
+   bmp.dheader.width += bmp.scan_lines;
    if (bmp.dheader.bits_per_pixel <= 8)
    {
       //No. of palette entries = 2^bits_per_pixel
