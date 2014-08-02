@@ -10,7 +10,7 @@
  * Start to piece the final program together please.
  */
 void usage(char *programname);
-
+long clip_zeros(unsigned char buffer, long buffer_length);
 
 int main(int argc, char * argv[])
 {
@@ -36,6 +36,7 @@ int main(int argc, char * argv[])
    seed = atoi(argv[4]);
    if(argv[1][1] == 'E')
       {
+      /*Encoding Program Branch*/
       load_img(&bmp, argv[2]);
       message_file = fopen(argv[3], "r");
       //Go to end of file
@@ -71,15 +72,16 @@ int main(int argc, char * argv[])
       }
    else
       {
+      /*Decoding Program Branch*/
       load_img(&bmp, argv[2]);
       load_img(&tempbmp, argv[2]);
       /*Recovery of original */
       alpha_filter(tempbmp, 3);
       recovered_cover = tempbmp.dheader.img_data8bit;
-      /*SpreadSpec Decoding (shouldn't this be decode_message?)*/
-      embed_message(bmp.img_data8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, bmp.dheader.width * bmp.dheader.height, &seed);
+      /*SpreadSpec Decoding (yup feel free to change it next time. im not perfect)*/
+      message_buffer = decode_message(bmp.img_data8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, bmp.dheader.width * bmp.dheader.height, &seed);
       /*Clipping Function For messages that are shorter than image length we may want to truncate them*/
-      
+      message_length = clip_zeros(message_buffer, bmp.dheader.width * bmp.dheader.height);
       
       /*Error Correcting Code*/
       // message_buffer = (unsigned char *) call_to_ecc_decode(params);
@@ -99,3 +101,16 @@ void usage(char *programname)
            %s [-E coverimage message]|[-D stegoimage outputfile] seed\n", programname , programname);
 }
 
+long clip_zeros(unsigned char buffer, long buffer_length)
+{
+   long new_length;
+   unsigned char current_char
+   new_length = buffer_length;
+   current_char = buffer[buffer_length-1];
+   while(current_char == 0)
+      {
+      new_length--;
+      current_char = buffer[new_length-1];
+      }
+   return new_length;
+}
