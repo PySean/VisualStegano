@@ -27,7 +27,7 @@
  *
  * Returns number of bits embedded in cover
  */
-int embed_message(unsigned char ** cover, unsigned char ** message, int width, int height, int numb, int *seed);
+int embed_message(unsigned char ** cover, unsigned char * message, int width, int height, int numb, int *seed);
 
 /* Takes the stegan message and the cover, generates the guassian noise streams
  * and compares the produced values with the difference between the stegan image

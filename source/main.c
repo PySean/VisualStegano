@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parseimg/parseimg.h"
-#include "spreadspec/spreadspectrum.h"
+#include "spreadspec/spread_spectrum.h"
 
 /*
  * "main.c", by Group 6
@@ -10,7 +10,7 @@
  * Start to piece the final program together please.
  */
 void usage(char *programname);
-long clip_zeros(unsigned char buffer, long buffer_length);
+long clip_zeros(unsigned char *buffer, long buffer_length);
 
 int main(int argc, char * argv[])
 {
@@ -48,12 +48,12 @@ int main(int argc, char * argv[])
       fread(message_buffer, message_length, 1 , message_file); //Read in entire message into buffer
       /* Error Correcting Code */
       //message_ecc = (unsigned char *) call_to_ecc_encode(params);
-      
-      
-      
+
+
+
       /*This may return a different message size so we need to make sure it will return a new size as well*/
       /*Message ecc is returned from Error Correcting code*/
-      embed_message(bmp.img_data8bit, message_ecc, bmp.dheader.width, bmp.dheader.height, message_len, &seed);
+      embed_message(bmp.img_data8bit, message_ecc, bmp.dheader.width, bmp.dheader.height, message_length, &seed);
       /* Write Changes to imagename.stego.bmp */
       /**/
       namelen = strlen(argv[2]);
@@ -65,7 +65,7 @@ int main(int argc, char * argv[])
          new_file_name[namelen - 5] = '\0';
          }
       strcat(new_file_name, "stego.bmp");
-      write_img(&bmp, new_file_name);
+      write_img(bmp, new_file_name);
       free(new_file_name);
       free(message_buffer);
       fclose(message_file);
@@ -77,15 +77,15 @@ int main(int argc, char * argv[])
       load_img(&tempbmp, argv[2]);
       /*Recovery of original */
       alpha_filter(tempbmp, 3);
-      recovered_cover = tempbmp.dheader.img_data8bit;
+      recovered_cover = tempbmp.img_data8bit;
       /*SpreadSpec Decoding (yup feel free to change it next time. im not perfect)*/
       message_buffer = decode_message(bmp.img_data8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, bmp.dheader.width * bmp.dheader.height, &seed);
       /*Clipping Function For messages that are shorter than image length we may want to truncate them*/
       message_length = clip_zeros(message_buffer, bmp.dheader.width * bmp.dheader.height);
-      
+
       /*Error Correcting Code*/
       // message_buffer = (unsigned char *) call_to_ecc_decode(params);
-      
+
       message_file = fopen(argv[3], "+w");
       /*Write message to file*/
       fwrite(message_buffer, 1, message_length, message_file);
@@ -96,15 +96,15 @@ int main(int argc, char * argv[])
 
 void usage(char *programname)
 {
-   printf("%s encodes and decodes spread spectrum images\n
-           to call this program use the following format\n
+   printf("%s encodes and decodes spread spectrum images\n \
+           to call this program use the following format\n \
            %s [-E coverimage message]|[-D stegoimage outputfile] seed\n", programname , programname);
 }
 
-long clip_zeros(unsigned char buffer, long buffer_length)
+long clip_zeros(unsigned char *buffer, long buffer_length)
 {
    long new_length;
-   unsigned char current_char
+   unsigned char current_char;
    new_length = buffer_length;
    current_char = buffer[buffer_length-1];
    while(current_char == 0)

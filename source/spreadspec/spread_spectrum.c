@@ -34,6 +34,7 @@ int main()
    return 0;
 }
 */
+//Height Unused Currently But should be implemented to prevent overflow
 int embed_message(unsigned char ** cover, unsigned char *message, int width, int height, int numb, int *seed)
 {
    int bits_embed;
@@ -75,6 +76,7 @@ int embed_message(unsigned char ** cover, unsigned char *message, int width, int
    return bits_embed;
 }
 
+//Height Unused Currently But should be implemented to prevent overflow
 unsigned char * decode_message(unsigned char **cover, unsigned char **stegan, int width, int height, int numb, int *seed)
 {
    int bits_decode;
