@@ -66,7 +66,19 @@ unsigned char * conv_encode (unsigned char *message, long *message_length){
    return encoded_message;
 }
 /*
-   Our convolutional encoder.
+ *  Our convolutional decoder.
+ *
+ *  The decoded has three steps.
+ *  First it computes the path metric for smallest possible paths
+ *  that result in each state at each point in the path.
+ *
+ *  Second it will go backwards from the final state to the beginning
+ *  always taking the shortest path metric as any previous path metric
+ *  will be less than or equal to it. The path taken is recored in the
+ *  last row.
+ *
+ *  Third it takes the values that were recored and inputs them starting from
+ *  the beginning all. code is done 
 */
 unsigned char * conv_decode (unsigned char *bit_stream, long stream_length)
 {
@@ -76,7 +88,7 @@ unsigned char * conv_decode (unsigned char *bit_stream, long stream_length)
    unsigned char *decoded_stream;
 
    /*Initialize rows to 0*/
-   for(row = 0; row < STATES; row ++)
+   for(row = 0; row < STATES +1; row ++)
    {
          path_metric[row] = (int *) calloc(stream_length * 4, sizeof(int));
    }

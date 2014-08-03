@@ -46,6 +46,11 @@ int main(int argc, char * argv[])
       fseek(message_file,0, SEEK_END);
       //count bytes in message file using offset from orgin
       message_length = ftell(message_file);
+      if(message_length * 2 +2 > bmp.dheader.width * bmp.dheader.height)
+         {
+         /*Cut the length of the message_size*/
+         message_length = (bmp.dheader.width * bmp.dheader.height - 2)/2;
+         }
       fseek(message_file, 0, SEEK_SET);
       message_buffer = (unsigned char * ) malloc(message_length);
       fread(message_buffer, message_length, 1 , message_file); //Read in entire message into buffer
