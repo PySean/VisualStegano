@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "parseimg/parseimg.h"
 #include "spreadspec/spread_spectrum.h"
 #include "filter/filter.h"
@@ -27,6 +28,7 @@ int main(int argc, char * argv[])
    bmp_file tempbmp; /*Only used for alpha_trim, will modify function later*/
    int seed;
    int namelen;
+   int bytes_put;
    /*If our command line options get more complicated we should
     *do proper argument parsing until such a point though this
     *is needs suiting.
@@ -55,7 +57,8 @@ int main(int argc, char * argv[])
       message_buffer = (unsigned char * ) malloc(message_length);
       fread(message_buffer, message_length, 1 , message_file); //Read in entire message into buffer
       /* Error Correcting Code */
-      message_ecc = (unsigned char *) conv_encode(message_buffer, &message_length);
+      message_ecc = message_buffer;
+      //message_ecc = (unsigned char *) conv_encode(message_buffer, &message_length);
 
 
 
@@ -76,7 +79,7 @@ int main(int argc, char * argv[])
       write_img(bmp, new_file_name);
       free(new_file_name);
       free(message_buffer);
-      free(message_ecc);
+      //free(message_ecc);
       fclose(message_file);
       }
    else
@@ -88,19 +91,33 @@ int main(int argc, char * argv[])
       alpha_filter(tempbmp, 3);
       recovered_cover = tempbmp.img_data8bit;
       /*SpreadSpec Decoding (yup feel free to change it next time. im not perfect)*/
-      message_buffer = decode_message(bmp.img_data8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, bmp.dheader.width * bmp.dheader.height, &seed);
+      message_length = bmp.dheader.width * bmp.dheader.height -1;
+      message_buffer = decode_message(bmp.img_data8bit, recovered_cover, bmp.dheader.width, bmp.dheader.height, message_length, &seed);
+      message_length = message_length/CHAR_BIT + 1;
+      //printf("Spec Decode Finished \n");
       /*Clipping Function For messages that are shorter than image length we may want to truncate them*/
-      message_length = clip_zeros(message_buffer, bmp.dheader.width * bmp.dheader.height);
-
+      //
+      //fprintf(stderr, "message_length : %ld\n", message_length);
+      message_length = clip_zeros(message_buffer, message_length);
+      message_ecc = message_buffer;
+      //fprintf(stderr, "message_length : %ld\n", message_length);   
       /*Error Correcting Code*/
-      message_ecc = (unsigned char *) conv_decode(message_buffer, message_length);
-
-      message_file = fopen(argv[3], "+w");
-      /*Write message to file*/
-      fwrite(message_buffer, 1, message_length, message_file);
+      /*Current Source of Seg faults*/
+      //message_ecc = (unsigned char *) conv_decode(message_buffer, message_length);
+      //message_length /= 2;
+      //printf("Error CC finished\n");
+      message_file = fopen(argv[3], "w");
+      /*Write message to file*/ 
+      //printf("Writing message\n");
+      for(bytes_put = 0; bytes_put < message_length; bytes_put++)
+         {
+         //fprintf(stderr, "Bytes_written : %d ", bytes_put);
+         fputc(message_ecc[bytes_put],message_file);
+         }
+      //printf("Finished Writing\n");
       fclose(message_file);
 
-      free(message_ecc);
+      //free(message_ecc);
       free(message_buffer);
       }
    return 0;

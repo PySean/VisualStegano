@@ -97,8 +97,8 @@ unsigned char * conv_decode (unsigned char *bit_stream, long stream_length)
    /*Invalid Opening States Are Marked*/
    path_metric[1][0] = -1;
    path_metric[3][0] = -1;
-
-   for(column = 0; column < stream_length * (CHAR_BIT/2); column++)
+   //fprintf(stderr, "Begin Loop : stream_length * 4 = %ld\n", stream_length*4);
+   for(column = 0; column < stream_length * (CHAR_BIT/2) ; column++)
       {
       //Grab the current bit by shifting the mask anding it with the current byte and shifting back the bit.
       current_bits = ((RMASK << (column*2 % CHAR_BIT)) & bit_stream[2*column/CHAR_BIT]) >> (column *2 % CHAR_BIT);
@@ -107,6 +107,7 @@ unsigned char * conv_decode (unsigned char *bit_stream, long stream_length)
          if(path_metric[row][column] == -1) {}//Skip the invalid cases
          else if(column == 0)
             {
+            //fprintf(stderr,"Branch1\trow:%d\tcolumn:%d\n",row,column);
             path_metric[row][column] = ERROR_TABLE[STATE_0][current_bits][row];
             }
          else
@@ -114,7 +115,7 @@ unsigned char * conv_decode (unsigned char *bit_stream, long stream_length)
             /*Only Picking the two valid parents*/
             alpha_parent = PARENT_TABLE[row][0];
             beta_parent = PARENT_TABLE[row][1];
-
+            //fprintf(stderr, "Branch2:\trow:%d\tcolum:%d\n",row,column);
             alpha_metric =path_metric[alpha_parent][column-1];
             beta_metric = path_metric[beta_parent][column-1];
             if(alpha_metric < 0 && beta_metric >= 0)
@@ -138,6 +139,7 @@ unsigned char * conv_decode (unsigned char *bit_stream, long stream_length)
 
          }
       }
+   //fprintf(stderr, "First Step Finished\n");
    row = 0;
    min_metric = path_metric[0][stream_length * 4 - 1];
    path_metric[4][stream_length * 4 - 1] = 0;
@@ -161,11 +163,13 @@ unsigned char * conv_decode (unsigned char *bit_stream, long stream_length)
       row = alpha_metric > beta_metric ? beta_parent : alpha_parent;
       path_metric[4][column] = row > STATE_1 ? 1 : 0;
       }
-
-   for (column = 0; column < stream_length * 4 ; column++)
+   //fprintf(stderr, "Second Step Finished\n");
+   for (column = 0; column < stream_length * 4 -1; column++)
       {
+      //fprintf(stderr, "Lets see when it breaks; column:%d \t%ld\t%ld\n",column,stream_length,stream_length * 4);
       decoded_stream[column/CHAR_BIT] = (MMASK << (column % CHAR_BIT)) * path_metric[4][column];
       }
+   printf("Finished With decoded\n");
    return decoded_stream;
 }
 

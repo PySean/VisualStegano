@@ -68,7 +68,7 @@ int embed_message(unsigned char ** cover, unsigned char *message, int width, int
        */
       noise_stream = P_LOW + noise_stream * (P_HIGH - P_LOW);
       noise_stream = normsinv(noise_stream) * SCALE;
-      printf("noise_stream final %Lf \n", noise_stream);
+      //printf("noise_stream final %Lf \n", noise_stream);
       cove_char = cove_char + (int)noise_stream < 0 ? 0 :cove_char + (int) noise_stream;
       cover[bits_embed/width][bits_embed % width] = cove_char > UCHAR_MAX ? UCHAR_MAX: cove_char;
    }
@@ -130,7 +130,7 @@ unsigned char * decode_message(unsigned char **cover, unsigned char **stegan, in
       else{
          mess_char = abs(img_diff - noise_stream) >= abs(img_diff - alt_noise_stream) ? ALT_STREAM : REG_STREAM;
       }
-      printf("%d\n",mess_char);
+      //printf("%d\n",mess_char);
       message[bits_decode/CHAR_BIT] += (unsigned char)( mess_char << bits_decode % CHAR_BIT);
    }
    return message;
