@@ -10,35 +10,39 @@
 
 int compare_ints(int orgin, int relativeto);
 /*
-int main()
-{
-   unsigned char cover[96]  = "abcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq ponabcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq pon";
-   unsigned char ocover[96] = "abcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq ponabcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq pon";
-   unsigned char * decrypted;
-   int mlen;
-   int seed_init = 3;
-   int seed, index;
-   seed = seed_init;
-   unsigned char message[12] = "hello world";
-   mlen = CHAR_BIT * 11;
-   embed_message((unsigned char *)cover, (unsigned char *)&message, mlen, &seed);
-   for (index = 0; index < 8; index++)
-        printf("%d : %x\n", index , cover[index]);
-   printf("%s\n",cover);
-   printf("P_LOW %Lf\n", normsinv(P_HIGH));
-   printf("P_HIGH %Lf\n", normsinv(P_LOW));
-   seed = seed_init;
-   decrypted = decode_message(ocover, cover, mlen, &seed);
-   printf("message: %s\n decrypted message: %s\n",message, decrypted);
-   free(decrypted);
-   return 0;
-}
+*int main()
+*{
+*   unsigned char cover[96]  = "abcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq ponabcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq pon";
+*   unsigned char ocover[96] = "abcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq ponabcd efgh ijkl mnop qrst uvwx yzzy xwvu tsrq pon";
+*   unsigned char * decrypted;
+*   int mlen;
+*   int seed_init = 3;
+*   int seed, index;
+*   seed = seed_init;
+*   unsigned char message[12] = "hello world";
+*   mlen = CHAR_BIT * 11;
+*   embed_message((unsigned char *)cover, (unsigned char *)&message, mlen, &seed);
+*   for (index = 0; index < 8; index++)
+*        printf("%d : %x\n", index , cover[index]);
+*   printf("%s\n",cover);
+*   printf("P_LOW %Lf\n", normsinv(P_HIGH));
+*   printf("P_HIGH %Lf\n", normsinv(P_LOW));
+*   seed = seed_init;
+*   decrypted = decode_message(ocover, cover, mlen, &seed);
+*   printf("message: %s\n decrypted message: %s\n",message, decrypted);
+*   free(decrypted);
+*   return 0;
+*}
 */
-//Height Unused Currently But should be implemented to prevent overflow
+//Height Unused Currently But should be implemented to prevent overflow current checking in main
+
 int embed_message(unsigned char ** cover, unsigned char *message, int width, int height, int numb, int *seed)
 {
+   /*bits_embed keeps a running counter of the embedding process*/
    int bits_embed;
+   /*noise_stream is the value returned from the random number generator.*/
    long double noise_stream;
+   /*cover and message characters respectively 8 covers for each message character.*/
    int cove_char, mess_char,mask;
 
 
@@ -46,7 +50,11 @@ int embed_message(unsigned char ** cover, unsigned char *message, int width, int
     * alternative stream value.
     *
     * the stream values are then used in the inverse normal cdf
-    * function
+    * function.
+    *
+    * After the values have been turned into a normal distribution thay
+    * Are scaled and added to the cover. Taking care to avoid over/under flow
+    * Scale should be as much as needed but less than can be visibly detected. 
     * */
    for ( bits_embed = 0; bits_embed < numb; bits_embed++)
    {
@@ -76,6 +84,12 @@ int embed_message(unsigned char ** cover, unsigned char *message, int width, int
    return bits_embed;
 }
 
+/* Decode_Message 
+ *
+ * Comparing the Recovered image to the stego and the rng stream this will choose the most probable bit value for 
+ * Any given pixel. Works best with a recovered image that closely matches the original. 
+ *
+ * */
 //Height Unused Currently But should be implemented to prevent overflow
 unsigned char * decode_message(unsigned char **cover, unsigned char **stegan, int width, int height, int numb, int *seed)
 {
@@ -136,6 +150,7 @@ unsigned char * decode_message(unsigned char **cover, unsigned char **stegan, in
    return message;
 }
 
+/*Basically the same as a java compare function */
 int compare_ints(int orgin, int relativeto)
 {
    return (orgin > relativeto) - (orgin > relativeto);

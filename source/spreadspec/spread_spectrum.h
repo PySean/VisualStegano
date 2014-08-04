@@ -1,5 +1,7 @@
 #ifndef SPREAD_SPECTRUM_H
 #define SPREAD_SPECTRUM_H
+/*Written By Matthew Seaworth, Group 6*/
+
 
 /*    This file provides functions aiding in embedding as well as creating
  * the spread spectrum encoding of the message. It does not handle the final
