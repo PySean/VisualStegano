@@ -1,8 +1,9 @@
-VPATH = parseimg:filter:normal:spreadspec:errorcc
+VPATH = parseimg:filter:normal:spreadspec:errorcc:neterrorcc
 CC=gcc
 CFLAGS=-Wall -c
 
-objects = parseimg.o main.o filter.o normal.o normsinv.o spread_spectrum.o errorcc.o
+objects = parseimg.o main.o filter.o normal.o normsinv.o spread_spectrum.o errorcc.o econvolution.o\
+eviterbi.o
 
 hideit: $(objects)
 	$(CC) -o hideit $(objects) -lm
@@ -20,5 +21,9 @@ spread_spectrum.o: spread_spectrum.c spread_spectrum.h
 	$(CC) $(CFLAGS) ./spreadspec/spread_spectrum.c
 errorcc.o: errorcc.c errorcc.h
 	$(CC) $(CFLAGS) ./errorcc/errorcc.c
+econvolution.o: econvolution.c vdsim.h
+	$(CC) $(CFLAGS) ./neterrorcc/econvolution.c
+eviterbi.o: eviterbi.c vdsim.h
+	$(CC) $(CFLAGS) ./neterrorcc/eviterbi.c
 clean:
 	rm hideit $(objects)
